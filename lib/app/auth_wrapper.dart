@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/authentication/clerk_auth_service.dart';
 import '../core/networking/backend_service.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/dashboard/presentation/dashboard_screen.dart';
+import 'main_scaffold.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -47,7 +47,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
     }
 
     if (_isAuthenticated) {
-      return const DashboardScreen();
+      return const MainScaffold();
     }
 
     return const LoginScreen();
