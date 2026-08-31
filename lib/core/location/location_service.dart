@@ -124,10 +124,14 @@ class LocationService {
   }
 
   void _processLocationUpdate(Position position) {
-    // Rate Limiting (Step 12): Minimum 1 second between updates to prevent spamming
+    // Dynamic Rate Limiting (Phase 4E): 
+    // Minimum 1 second when moving, 5 seconds when stationary
     final currentDeviceTime = DateTime.now();
+    final isStationary = position.speed < 0.7;
+    final requiredIntervalMs = isStationary ? 5000 : 1000;
+
     if (_lastAcceptedLocationTime != null && 
-        currentDeviceTime.difference(_lastAcceptedLocationTime!).inMilliseconds < 1000) {
+        currentDeviceTime.difference(_lastAcceptedLocationTime!).inMilliseconds < requiredIntervalMs) {
         return; // Too soon, ignore this update
     }
     
