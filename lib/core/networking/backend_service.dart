@@ -315,4 +315,56 @@ class BackendService {
       return false;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getHistory() async {
+    final token = await ClerkAuthService().getValidToken();
+    if (token == null) return [];
+
+    try {
+      final apiUrl = await Env.getNextJsApiUrl();
+      final response = await http.get(
+        Uri.parse('$apiUrl/driver/history'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Bypass-Tunnel-Reminder': 'true',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['history'] != null) {
+          return List<Map<String, dynamic>>.from(data['history']);
+        }
+      }
+      return [];
+    } catch (e) {
+      print('History Fetch Error: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>?> getProfile() async {
+    final token = await ClerkAuthService().getValidToken();
+    if (token == null) return null;
+
+    try {
+      final apiUrl = await Env.getNextJsApiUrl();
+      final response = await http.get(
+        Uri.parse('$apiUrl/driver/profile'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Bypass-Tunnel-Reminder': 'true',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['profile'];
+      }
+      return null;
+    } catch (e) {
+      print('Profile Fetch Error: $e');
+      return null;
+    }
+  }
 }

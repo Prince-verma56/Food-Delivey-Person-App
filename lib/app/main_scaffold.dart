@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 
+import '../features/history/presentation/history_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
 
@@ -13,8 +16,8 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const Center(child: Text("History (Coming Soon)")),
-    const Center(child: Text("Profile (Coming Soon)")),
+    const HistoryScreen(),
+    const ProfileScreen(),
   ];
 
   @override
