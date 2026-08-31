@@ -20,11 +20,13 @@ class BackendService {
     double? speed,
     double? accuracy,
     int? gpsTimestamp,
+    int? sequence,
   }) async {
     final token = await ClerkAuthService().getValidToken();
     if (token == null) return false;
 
     try {
+      final requestSentAt = DateTime.now().millisecondsSinceEpoch;
       final apiUrl = await Env.getNextJsApiUrl();
       final response = await http.post(
         Uri.parse('$apiUrl/driver/location'),
@@ -41,6 +43,7 @@ class BackendService {
           'speed': speed,
           'accuracy': accuracy,
           'gpsTimestamp': gpsTimestamp ?? DateTime.now().millisecondsSinceEpoch,
+          'sequence': sequence,
         }),
       ).timeout(const Duration(seconds: 10));
 
@@ -50,6 +53,8 @@ class BackendService {
         return false;
       }
 
+      final latency = DateTime.now().millisecondsSinceEpoch - requestSentAt;
+      print('TELEMETRY AUDIT: Sent seq=$sequence, gpsTs=$gpsTimestamp, backendLat=$latency ms');
       updatesSent++;
       return true;
     } on TimeoutException catch (_) {
@@ -71,11 +76,13 @@ class BackendService {
     double? speed,
     double? accuracy,
     int? gpsTimestamp,
+    int? sequence,
   }) async {
     final token = await ClerkAuthService().getValidToken();
     if (token == null) return false;
 
     try {
+      final requestSentAt = DateTime.now().millisecondsSinceEpoch;
       final apiUrl = await Env.getNextJsApiUrl();
       final response = await http.post(
         Uri.parse('$apiUrl/driver/location/general'),
@@ -92,12 +99,18 @@ class BackendService {
           if (speed != null) 'speed': speed,
           if (accuracy != null) 'accuracy': accuracy,
           if (gpsTimestamp != null) 'gpsTimestamp': gpsTimestamp,
+          if (sequence != null) 'sequence': sequence,
         }),
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
         print('Backend General Location Error: ${response.statusCode} - ${response.body}');
         return false;
+      }
+
+      if (latitude != null) {
+        final latency = DateTime.now().millisecondsSinceEpoch - requestSentAt;
+        print('TELEMETRY AUDIT: General seq=$sequence, gpsTs=$gpsTimestamp, backendLat=$latency ms');
       }
 
       return true;

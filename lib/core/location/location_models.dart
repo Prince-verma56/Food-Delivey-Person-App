@@ -5,6 +5,7 @@ class LocationSample {
   final double speed;
   final double heading;
   final DateTime deviceTimestamp;
+  final int sequence;
 
   const LocationSample({
     required this.latitude,
@@ -13,10 +14,11 @@ class LocationSample {
     required this.speed,
     required this.heading,
     required this.deviceTimestamp,
+    required this.sequence,
   });
 
   @override
   String toString() {
-    return 'LocationSample(lat: $latitude, lon: $longitude, accuracy: $accuracy, speed: $speed, time: $deviceTimestamp)';
+    return 'LocationSample(seq: $sequence, lat: $latitude, lon: $longitude, accuracy: $accuracy, speed: $speed, time: $deviceTimestamp)';
   }
 }

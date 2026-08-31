@@ -27,6 +27,7 @@ class _RiderMapScreenState extends State<RiderMapScreen> {
   double? _duration;
 
   bool _followDriver = true;
+  late String _deliveryStatus;
 
   LatLng get _restaurantLocation {
     final loc = widget.assignment['restaurantLocation'];
@@ -47,6 +48,7 @@ class _RiderMapScreenState extends State<RiderMapScreen> {
   @override
   void initState() {
     super.initState();
+    _deliveryStatus = widget.assignment['deliveryStatus'] ?? 'assigned';
     _startLocationUpdates();
     _fetchRoute();
   }
@@ -89,7 +91,6 @@ class _RiderMapScreenState extends State<RiderMapScreen> {
   Widget build(BuildContext context) {
     final orderNumber = widget.assignment['orderNumber'] ?? widget.assignment['_id'] ?? 'Unknown';
     final customerName = widget.assignment['customer']?['name'] ?? 'Customer';
-    final deliveryStatus = widget.assignment['deliveryStatus'] ?? 'assigned';
 
     final etaMinutes = _duration != null ? (_duration! / 60).ceil() : '--';
     final distanceKm = _distance != null ? (_distance! / 1000).toStringAsFixed(1) : '--';
@@ -259,9 +260,9 @@ class _RiderMapScreenState extends State<RiderMapScreen> {
                         if (orderId == null) return;
                         
                         String action = '';
-                        if (deliveryStatus == 'assigned' || deliveryStatus == 'picked_up') {
+                        if (_deliveryStatus == 'assigned' || _deliveryStatus == 'picked_up') {
                           action = 'start_delivery';
-                        } else if (deliveryStatus == 'out_for_delivery') {
+                        } else if (_deliveryStatus == 'out_for_delivery') {
                           action = 'complete_delivery';
                         }
                         
@@ -273,6 +274,10 @@ class _RiderMapScreenState extends State<RiderMapScreen> {
                             );
                             if (action == 'complete_delivery') {
                               Navigator.pop(context); // Go back to dashboard when done
+                            } else if (action == 'start_delivery') {
+                              setState(() {
+                                _deliveryStatus = 'out_for_delivery';
+                              });
                             }
                           } else if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -282,9 +287,9 @@ class _RiderMapScreenState extends State<RiderMapScreen> {
                         }
                       },
                       child: Text(
-                        (deliveryStatus == 'assigned' || deliveryStatus == 'picked_up') ? 'START DELIVERY' 
-                        : deliveryStatus == 'out_for_delivery' ? 'COMPLETE DELIVERY' 
-                        : deliveryStatus.toString().toUpperCase().replaceAll('_', ' '),
+                        (_deliveryStatus == 'assigned' || _deliveryStatus == 'picked_up') ? 'START DELIVERY' 
+                        : _deliveryStatus == 'out_for_delivery' ? 'COMPLETE DELIVERY' 
+                        : _deliveryStatus.toString().toUpperCase().replaceAll('_', ' '),
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),

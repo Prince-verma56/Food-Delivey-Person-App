@@ -16,8 +16,10 @@ class LocationService {
   DateTime? _lastAcceptedLocationTime;
   
   // Configurable constants
-  static const int locationUpdateIntervalSeconds = 5;
-  static const int minimumMovementMeters = 2; // Reduced from 10 to 2 for faster pinging
+  static const int locationUpdateIntervalSeconds = 1;
+  static const int minimumMovementMeters = 1; 
+
+  int _sequenceCounter = 1000;
 
   Stream<LocationSample> get locationStream => _locationController.stream;
 
@@ -69,7 +71,7 @@ class LocationService {
     if (defaultTargetPlatform == TargetPlatform.android) {
       locationSettings = AndroidSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 0, // 0 means ping immediately even if not moving
+        distanceFilter: minimumMovementMeters,
         intervalDuration: const Duration(seconds: locationUpdateIntervalSeconds),
         foregroundNotificationConfig: const ForegroundNotificationConfig(
           notificationText: "Location sharing active. You're online for deliveries.",
@@ -129,6 +131,8 @@ class LocationService {
         return; // Too soon, ignore this update
     }
     
+    _sequenceCounter++;
+    
     final sample = LocationSample(
       latitude: position.latitude,
       longitude: position.longitude,
@@ -136,7 +140,10 @@ class LocationService {
       speed: position.speed,
       heading: position.heading,
       deviceTimestamp: position.timestamp,
+      sequence: _sequenceCounter,
     );
+    
+    print('TELEMETRY AUDIT: GPS Hardware Fix - seq=$_sequenceCounter, lat=${position.latitude}, lng=${position.longitude}');
 
     _lastLocation = sample;
     _lastAcceptedLocationTime = currentDeviceTime;

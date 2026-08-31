@@ -11,16 +11,13 @@ class Env {
   // Mapbox Token (Public)
   static const String mapBoxToken = String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
 
-  // Next.js API Bridge (Dynamic for local testing)
-  // Default fallback if not set in Settings
-  static const String defaultNextJsApiUrl = 'http://172.16.163.148:3000/api'; 
+  // Convex HTTP API Bridge (Publicly accessible from anywhere)
+  // Replaced local Next.js API with direct Convex HTTP endpoints
+  static const String defaultNextJsApiUrl = 'https://veracious-duck-472.convex.site/api'; 
   
   static Future<String> getNextJsApiUrl() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString('api_url') ?? defaultNextJsApiUrl;
-    } catch (e) {
-      return defaultNextJsApiUrl;
-    }
+    // We now always return the stable Convex Cloud HTTP URL.
+    // Local IP overrides are no longer necessary since this is globally accessible.
+    return defaultNextJsApiUrl;
   }
 }

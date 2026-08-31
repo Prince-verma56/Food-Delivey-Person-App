@@ -29,6 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _heartbeatTimer;
   StreamSubscription<LocationSample>? _locationSubscription;
   DateTime? _lastSync;
+  bool _isUploadingLocation = false;
 
   @override
   void initState() {
@@ -193,34 +194,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _locationService.startTracking();
     _locationSubscription = _locationService.locationStream.listen((location) async {
       // 1. Always update Fleet Map (General Presence)
-      final success = await BackendService().sendGeneralLocation(
-        isOnline: true,
-        latitude: location.latitude,
-        longitude: location.longitude,
-        heading: location.heading,
-        speed: location.speed,
-        accuracy: location.accuracy,
-        gpsTimestamp: location.deviceTimestamp.millisecondsSinceEpoch,
-      );
-      
-      // 2. If assigned to an order, ALSO update Order Map
-      if (_assignment != null && _assignment!['_id'] != null && 
-          ['assigned', 'picked_up', 'out_for_delivery'].contains(_assignment!['deliveryStatus'])) {
-        await BackendService().sendLocation(
-          orderId: _assignment!['_id'],
+      if (_isUploadingLocation) return;
+      _isUploadingLocation = true;
+
+      try {
+        final success = await BackendService().sendGeneralLocation(
+          isOnline: true,
           latitude: location.latitude,
           longitude: location.longitude,
           heading: location.heading,
           speed: location.speed,
           accuracy: location.accuracy,
           gpsTimestamp: location.deviceTimestamp.millisecondsSinceEpoch,
+          sequence: location.sequence,
         );
-      }
-      
-      if (mounted) {
-        setState(() {
-          if (success) _lastSync = DateTime.now();
-        });
+        
+        // 2. If assigned to an order, ALSO update Order Map
+        if (_assignment != null && _assignment!['_id'] != null && 
+            ['assigned', 'picked_up', 'out_for_delivery'].contains(_assignment!['deliveryStatus'])) {
+          await BackendService().sendLocation(
+            orderId: _assignment!['_id'],
+            latitude: location.latitude,
+            longitude: location.longitude,
+            heading: location.heading,
+            speed: location.speed,
+            accuracy: location.accuracy,
+            gpsTimestamp: location.deviceTimestamp.millisecondsSinceEpoch,
+            sequence: location.sequence,
+          );
+        }
+        
+        if (mounted) {
+          setState(() {
+            if (success) {
+              _lastSync = DateTime.now();
+              _gpsStatusText = 'Live';
+            } else {
+              _gpsStatusText = 'Upload Failed';
+            }
+          });
+        }
+      } finally {
+        _isUploadingLocation = false;
       }
     });
   }
@@ -247,11 +262,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: const Text('DT PIZZA'),
         backgroundColor: Colors.orange.shade400,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Local Dev Settings',
-            onPressed: _showApiSettings,
-          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -317,14 +327,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('GPS:', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(_gpsStatusText, style: const TextStyle(color: Colors.green)),
+                            const Text('Hardware GPS:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Connected', style: TextStyle(color: Colors.green)),
                           ],
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Last GPS update:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Telemetry:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(_gpsStatusText, style: TextStyle(color: _gpsStatusText == 'Live' ? Colors.green : Colors.orange)),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Last upload:', style: TextStyle(fontWeight: FontWeight.bold)),
                             Text(_getTimeAgo()),
                           ],
                         ),

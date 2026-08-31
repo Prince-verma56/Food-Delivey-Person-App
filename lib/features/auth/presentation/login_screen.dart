@@ -108,11 +108,6 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.orange.shade400,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Local Dev Settings',
-            onPressed: _showApiSettings,
-          ),
-          IconButton(
             icon: const Icon(Icons.monitor_heart),
             onPressed: () {
               Navigator.push(
