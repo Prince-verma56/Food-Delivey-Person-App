@@ -24,4 +24,15 @@ class Env {
     // We now always return the stable Convex Cloud HTTP URL (configurable via --dart-define)
     return defaultNextJsApiUrl;
   }
+
+  // ---------------------------------------------------------
+  // MULTI-TENANCY CONFIGURATION
+  // ---------------------------------------------------------
+  
+  // The restaurant ID this app instance is built for. 
+  // In a true white-label flow, this would be set via --dart-define at build time.
+  static const String restaurantId = String.fromEnvironment(
+    'RESTAURANT_ID',
+    defaultValue: 'jx71m7g7s0p08nqg36d8mmsym570bksn', // Default to Dev Tarka Pizza for dev
+  );
 }
